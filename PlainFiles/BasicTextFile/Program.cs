@@ -5,6 +5,13 @@ var lines = textFile.ReadLines();
 
 using (var logger = new LogWriter("log.txt"))
 {
+    var user = Login("Users.txt", logger);
+    if (user == null)
+    {
+        Console.WriteLine("Login failed. Exiting...");
+        return;
+    }
+
     var opc = "0";
     logger.WriteLog("INFO", "Application started.");
     do
@@ -99,4 +106,44 @@ string Menu()
     Console.WriteLine("0. Exit");
     Console.Write("Enter your option: ");
     return Console.ReadLine() ?? "0";
+}
+
+User? Login(string path, LogWriter logger)
+{
+    var users = File.ReadAllLines(path)
+        .Select(User.FromLine)
+        .Where(u => u != null)
+        .ToList();
+
+    Console.Write("Usuario: ");
+    var username = Console.ReadLine();
+
+    Console.Write("Contrase\u00f1a: ");
+    var password = Console.ReadLine();
+
+    var user = users.FirstOrDefault(u => u!.Username == username);
+
+    if (user == null)
+    {
+        Console.WriteLine("Usuario no encontrado.");
+        logger.WriteLog("WARN", $"Login failed. Usuario '{username}' no existe.");
+        return null;
+    }
+
+    if (!user.Active)
+    {
+        Console.WriteLine("Usuario inactivo.");
+        logger.WriteLog("WARN", $"Login failed. Usuario '{username}' inactivo.");
+        return null;
+    }
+
+    if (user.Password != password)
+    {
+        Console.WriteLine("Contrase\u00f1a incorrecta.");
+        logger.WriteLog("WARN", $"Login failed. Contrase\u00f1a incorrecta para '{username}'.");
+        return null;
+    }
+
+    logger.WriteLog("INFO", $"Login exitoso: {username}");
+    return user;
 }
