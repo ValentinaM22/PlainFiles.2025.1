@@ -89,6 +89,27 @@ do
 
             Console.WriteLine("Person updated successfully.");
             break;
+
+        case "5":
+            Console.Write("Enter the ID of the person to delete: ");
+            var deleteId = Console.ReadLine();
+
+            if (!int.TryParse(deleteId, out int deleteIdValue))
+            {
+                Console.WriteLine("Invalid ID.");
+                break;
+            }
+
+            var personToDelete = readPeople.FirstOrDefault(p => p.Id == deleteIdValue);
+            if (personToDelete == null)
+            {
+                Console.WriteLine("Person not found.");
+                break;
+            }
+
+            readPeople.Remove(personToDelete);
+            Console.WriteLine("Person removed successfully.");
+            break;
     }
 } while (opc != "0");
 SaveChanges();
@@ -105,7 +126,9 @@ string Menu()
     Console.WriteLine("2. Add person");
     Console.WriteLine("3. Save changes");
     Console.WriteLine("4. Edit person");
+    Console.WriteLine("5. Delete person");
     Console.WriteLine("0. Exit");
     Console.Write("Choose an option: ");
     return Console.ReadLine() ?? "0";
 }
+
