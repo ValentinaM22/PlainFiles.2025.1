@@ -1,0 +1,1 @@
+﻿_writer = new StreamWriter(path, append: true)
