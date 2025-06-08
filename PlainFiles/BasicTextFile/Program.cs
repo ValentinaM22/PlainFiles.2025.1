@@ -113,37 +113,65 @@ User? Login(string path, LogWriter logger)
     var users = File.ReadAllLines(path)
         .Select(User.FromLine)
         .Where(u => u != null)
+        .Cast<User>()
         .ToList();
 
-    Console.Write("Usuario: ");
-    var username = Console.ReadLine();
+    int attempts = 0;
 
-    Console.Write("Contrase\u00f1a: ");
-    var password = Console.ReadLine();
-
-    var user = users.FirstOrDefault(u => u!.Username == username);
-
-    if (user == null)
+    while (attempts < 3)
     {
-        Console.WriteLine("Usuario no encontrado.");
-        logger.WriteLog("WARN", $"Login failed. Usuario '{username}' no existe.");
-        return null;
+        Console.Write("Usuario: ");
+        var username = Console.ReadLine();
+
+        Console.Write("Contraseña: ");
+        var password = Console.ReadLine();
+
+        var user = users.FirstOrDefault(u => u.Username == username);
+
+        if (user == null)
+        {
+            Console.WriteLine("Usuario no encontrado.");
+            logger.WriteLog("WARN", $"Login failed. Usuario '{username}' no existe.");
+            return null;
+        }
+
+        if (!user.Active)
+        {
+            Console.WriteLine("Usuario inactivo o bloqueado.");
+            logger.WriteLog("WARN", $"Login failed. Usuario '{username}' bloqueado.");
+            return null;
+        }
+
+        if (user.Password != password)
+        {
+            attempts++;
+            Console.WriteLine("Contraseña incorrecta.");
+            logger.WriteLog("WARN", $"Intento fallido {attempts}/3 para '{username}'.");
+
+            if (attempts >= 3)
+            {
+                Console.WriteLine("Demasiados intentos. Usuario bloqueado.");
+                logger.WriteLog("ERROR", $"Usuario '{username}' bloqueado por intentos fallidos.");
+
+                var updatedLines = File.ReadAllLines(path)
+                    .Select(line =>
+                    {
+                        var parts = line.Split(',');
+                        if (parts.Length == 3 && parts[0] == username)
+                        {
+                            return $"{parts[0]},{parts[1]},false";
+                        }
+                        return line;
+                    });
+                File.WriteAllLines(path, updatedLines);
+            }
+        }
+        else
+        {
+            logger.WriteLog("INFO", $"Login exitoso: {username}");
+            return user;
+        }
     }
 
-    if (!user.Active)
-    {
-        Console.WriteLine("Usuario inactivo.");
-        logger.WriteLog("WARN", $"Login failed. Usuario '{username}' inactivo.");
-        return null;
-    }
-
-    if (user.Password != password)
-    {
-        Console.WriteLine("Contrase\u00f1a incorrecta.");
-        logger.WriteLog("WARN", $"Login failed. Contrase\u00f1a incorrecta para '{username}'.");
-        return null;
-    }
-
-    logger.WriteLog("INFO", $"Login exitoso: {username}");
-    return user;
+    return null;
 }

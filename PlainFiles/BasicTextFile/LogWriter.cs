@@ -14,8 +14,8 @@ public class LogWriter : IDisposable
 
     public void WriteLog(string level, string message)
     {
-        var tiemstamp = DateTime.Now.ToString("s"); // ISO 8601 format
-        _writer.WriteLine($"{tiemstamp} [{level}] {message}");
+        var timestamp = DateTime.Now.ToString("s"); // ISO 8601 format
+        _writer.WriteLine($"{timestamp} [{level}] {message}");
     }
 
     public void Dispose()

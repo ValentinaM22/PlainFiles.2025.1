@@ -1,1 +1,2 @@
-﻿_writer = new StreamWriter(path, append: true)
+﻿2025-06-07T15:30:10 [INFO] (jzuluaga) Added person: Juan Zuluaga
+2025-06-07T15:31:40 [ERROR] (jzuluaga) Failed login attempt
